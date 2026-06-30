@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Astryx v0.1.2 — CDN Test</title>
-  <meta name="description" content="Testing Astryx v0.1.2 UMD bundle from CDN with React 19 and StyleX — no bundler required.">
+  <meta name="description" content="Testing Astryx v0.1.2 ESM build from esm.sh with React 19 and StyleX — no bundler required.">
 
   <!-- Theme fonts from Google Fonts CDN -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -19,11 +19,15 @@
   <link rel="stylesheet" href="https://unpkg.com/@astryxdesign/theme-matcha@0.1.2/dist/theme.css">
   <link rel="stylesheet" href="https://unpkg.com/@astryxdesign/theme-butter@0.1.2/dist/theme.css">
 
-  <!-- Import map: React 19 from esm.sh (React 19 dropped UMD builds) -->
+  <!-- Import map: React 19 from esm.sh. Astryx's ESM build emits bare
+       `react` / `react/jsx-runtime` imports (via ?external=react,react-dom),
+       so these entries guarantee a single shared React instance. -->
   <script type="importmap">
   {
     "imports": {
       "react": "https://esm.sh/react@19.2.7",
+      "react/jsx-runtime": "https://esm.sh/react@19.2.7/jsx-runtime",
+      "react-dom": "https://esm.sh/react-dom@19.2.7",
       "react-dom/client": "https://esm.sh/react-dom@19.2.7/client",
       "htm": "https://esm.sh/htm@3.1.1"
     }
@@ -80,10 +84,9 @@
   <script type="module">
     // ─── Boot sequence ─────────────────────────────────────────────
     // 1. Import React 19 from esm.sh (React 19 has no UMD builds)
-    // 2. Set window.React / window.ReactDOM globals
-    // 3. Dynamically load the Astryx UMD bundle (expects global React)
-    // 4. Import the pre-built neutral theme
-    // 5. Render the app
+    // 2. Import the Astryx ESM build from esm.sh (?external=react,react-dom)
+    // 3. Import pre-built themes from esm.sh
+    // 4. Render the app
 
     const root = document.getElementById('root');
 
@@ -93,24 +96,14 @@
       const { createRoot } = await import('react-dom/client');
       const htm = (await import('htm')).default;
 
-      // Step 2: Set globals for the Astryx UMD bundle
-      window.React = React;
-      window.ReactDOM = { createRoot };
-
       // htm gives us JSX-like syntax without a bundler
       const h = htm.bind(React.createElement);
 
-      // Step 3: Load Astryx UMD bundle dynamically
-      await new Promise((resolve, reject) => {
-        const script = document.createElement('script');
-        script.src = 'https://unpkg.com/@astryxdesign/core@0.1.2/dist/astryx.umd.js';
-        script.onload = resolve;
-        script.onerror = () => reject(new Error('Failed to load Astryx UMD bundle from CDN'));
-        document.head.appendChild(script);
-      });
-
-      // The UMD bundle exposes everything on window.Astryx
-      const A = window.Astryx;
+      // Step 2: Astryx from esm.sh as an ESM module.
+      // ?external=react,react-dom makes esm.sh emit bare `react` imports
+      // that resolve through our import map → one shared React instance.
+      // StyleX runtime stays bundled inside the esm.sh build.
+      const A = await import('https://esm.sh/@astryxdesign/core@0.1.2?external=react,react-dom');
       const {
         Theme, defineTheme,
         AppShell, TopNav, TopNavHeading, TopNavItem,
@@ -264,14 +257,14 @@
               <${Heading} level=${1}>Astryx v0.1.2 — CDN Test<//>
               <${Text} type="supporting" size="lg">
                 This entire page loads from CDN with no bundler. React 19 from esm.sh,
-                Astryx UMD from unpkg, StyleX runtime bundled in.
+                Astryx ESM from esm.sh, StyleX runtime bundled in.
               <//>
             <//>
 
             <${Banner}
               status="info"
-              title="UMD Bundle Active"
-              description="The global window.Astryx exposes 240 exports including all components, defineTheme, and theme utilities."
+              title="ESM Build Active"
+              description="The esm.sh module exposes 240 named exports including all components, defineTheme, and theme utilities."
             />
 
             <${Grid} columns=${{ minWidth: 280 }} gap=${4}>
@@ -283,7 +276,7 @@
                   <//>
                   <${VStack} gap=${1}>
                     <${Text} type="body">React 19.2.7 — esm.sh<//>
-                    <${Text} type="body">Astryx 0.1.2 — unpkg UMD<//>
+                    <${Text} type="body">Astryx 0.1.2 — esm.sh ESM<//>
                     <${Text} type="body">StyleX runtime — bundled<//>
                     <${Text} type="body">Theme: neutral — esm.sh<//>
                   <//>
@@ -362,7 +355,7 @@
                   <${HStack} gap=${2} vAlign="start">
                     <${Badge} variant="success" label="New" />
                     <${Text} type="body">
-                      Prebuilt UMD bundle (<${Link} href="https://unpkg.com/@astryxdesign/core@0.1.2/dist/astryx.umd.js" target="_blank">dist/astryx.umd.js<//>) — global <${Kbd} keys="Astryx" />, no bundler needed
+                      ESM build served from <${Link} href="https://esm.sh/@astryxdesign/core@0.1.2" target="_blank">esm.sh<//> — native <${Kbd} keys="import" />, no bundler needed
                     <//>
                   <//>
                   <${HStack} gap=${2} vAlign="start">
@@ -391,7 +384,7 @@
           <${VStack} gap=${6}>
             <${Heading} level=${1}>Component Showcase<//>
             <${Text} type="supporting" size="lg">
-              All components rendered from the UMD global — no bundler, no StyleX plugin.
+              All components imported from the esm.sh ESM build — no bundler, no StyleX plugin.
             <//>
 
             <${Grid} columns=${{ minWidth: 300 }} gap=${4}>
@@ -477,7 +470,7 @@
           <${VStack} gap=${6}>
             <${Heading} level=${1}>Form Components<//>
             <${Text} type="supporting" size="lg">
-              Interactive form controls powered by React hooks from the UMD bundle.
+              Interactive form controls powered by React hooks from the ESM build.
             <//>
 
             <${Card} padding=${6}>
@@ -646,13 +639,13 @@
                     <${Link} href="https://esm.sh/react@19.2.7" target="_blank">esm.sh<//>
                   <//>
                   <${HStack} gap=${2} vAlign="center">
-                    <${Text} type="label">UMD bundle:<//>
-                    <${Link} href="https://unpkg.com/@astryxdesign/core@0.1.2/dist/astryx.umd.js" target="_blank">unpkg<//>
-                    <${Text} type="supporting">(${(594).toFixed(0)}KB, global: Astryx)<//>
+                    <${Text} type="label">ESM build:<//>
+                    <${Link} href="https://esm.sh/@astryxdesign/core@0.1.2" target="_blank">esm.sh<//>
+                    <${Text} type="supporting">(?external=react,react-dom)<//>
                   <//>
                   <${HStack} gap=${2} vAlign="center">
                     <${Text} type="label">StyleX:<//>
-                    <${Text} type="supporting">bundled in UMD<//>
+                    <${Text} type="supporting">bundled in ESM<//>
                   <//>
                 <//>
               <//>
