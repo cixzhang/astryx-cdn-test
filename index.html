@@ -6,6 +6,11 @@
   <title>Astryx v0.1.2 — CDN Test</title>
   <meta name="description" content="Testing Astryx v0.1.2 UMD bundle from CDN with React 19 and StyleX — no bundler required.">
 
+  <!-- Theme fonts from Google Fonts CDN -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&family=Montserrat:wght@400;500;600;700&family=DM+Sans:wght@400;500;600;700&family=Playwrite+US+Trad:wght@400;500;600&family=Outfit:wght@400;500;600;700&display=swap" rel="stylesheet">
+
   <!-- Astryx CSS from CDN: reset + pre-compiled StyleX + all theme CSS files -->
   <link rel="stylesheet" href="https://unpkg.com/@astryxdesign/core@0.1.2/src/reset.css">
   <link rel="stylesheet" href="https://unpkg.com/@astryxdesign/core@0.1.2/dist/astryx.css">
@@ -186,6 +191,7 @@
                     <${HStack} gap=${2} vAlign="center">
                       <${Selector}
                         label="Theme"
+                        isLabelHidden
                         value=${themeName}
                         onChange=${(v) => setThemeName(v)}
                         options=${[
