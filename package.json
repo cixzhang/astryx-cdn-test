@@ -1,0 +1,6 @@
+{
+  "dependencies": {
+    "@astryxdesign/cli": "^0.1.2",
+    "@astryxdesign/core": "^0.1.2"
+  }
+}
